@@ -24,8 +24,7 @@ const notFoundHtml = `
   <title>Object Not Found</title>
 </head>
 <body>
-  <h1>404 - Object Not Found</h1>
-  <p>The requested object was not found. You can upload an image below:</p>
+  <h1>Image2VRC</h1>
   
   <!-- ファイル選択用のinput -->
   <input type="file" id="fileInput" accept="image/png">
@@ -41,7 +40,7 @@ const notFoundHtml = `
       }
       
       try {
-        const response = await fetch(window.location.pathname, {
+        const response = await fetch("/mykey", {  // /mykeyにアップロード
           method: "PUT",
           headers: {
             "Content-Type": "image/png"
@@ -71,6 +70,9 @@ export default {
 
 		switch (request.method) {
 			case 'PUT':
+				if (key !== "mykey") {
+					return new Response('Key not allowed', { status: 403 });
+				}
 				await env.MY_BUCKET.put(key, request.body);
 				return new Response(`Put ${key} successfully!`);
 			case 'GET':
