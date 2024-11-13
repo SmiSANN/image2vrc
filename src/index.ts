@@ -303,6 +303,7 @@ export default {
 	async fetch(request: Request, env: Env): Promise<Response> {
 		const url = new URL(request.url);
 		const key = url.pathname.slice(1);
+    const keylength = 36;
 
 		switch (request.method) {
 			case 'PUT':
@@ -313,6 +314,9 @@ export default {
 				if (contentLength && parseInt(contentLength) > 5 * 1024 * 1024) {
 					return new Response('ファイルが大きすぎます。最大サイズは5MBです。', { status: 413 }); // 413 Payload Too Large
 				}
+        if (key.length != keylength){
+        }
+        return new Response('不正なファイルです', { status: 400 }); //400 Bad Request
 
 				// ファイルが条件を満たす場合のみ保存処理を実行
 				await env.MY_BUCKET.put(key, request.body);
