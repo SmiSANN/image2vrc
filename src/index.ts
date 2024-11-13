@@ -157,7 +157,7 @@ const HTML = `
     <input type="file" id="fileInput" accept="image/png, image/jpeg">
     
     <!-- アップロードボタン -->
-    <button id="uploadButton" onclick="uploadImage()">Upload Image</button>
+    <button id="uploadButton" onclick="uploadImage()">画像をアップロード</button>
 
     <p>又はクリップボードから貼り付け</p>
 
@@ -237,17 +237,17 @@ const HTML = `
           });
 
           if (response.ok) {
-            statusMessage.innerText = "SUCCESS";
+            statusMessage.innerText = "成功";
             statusMessage.style.color = "green";
             const url = \`https://image2vrc.smisann.net/\${uuid}\`;
             displayRecentUrl(url);
             await navigator.clipboard.writeText(url); // 自動でクリップボードにコピー
           } else {
-            statusMessage.innerText = "FAIL";
+            statusMessage.innerText = "失敗";
             statusMessage.style.color = "red";
           }
         } catch (error) {
-          statusMessage.innerText = "FAIL";
+          statusMessage.innerText = "失敗";
           statusMessage.style.color = "red";
           console.error("Error:", error);
         }
