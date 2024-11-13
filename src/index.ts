@@ -226,9 +226,9 @@ const HTML = `
           showPreview(file);
         }
 
-        const timestampKey = new Date().getTime().toString();
+        const uuid = self.crypto.randomUUID();
         try {
-          const response = await fetch(\`/\${timestampKey}\`, {
+          const response = await fetch(\`/\${uuid}\`, {
             method: "PUT",
             headers: {
               "Content-Type": format
@@ -239,7 +239,7 @@ const HTML = `
           if (response.ok) {
             statusMessage.innerText = "SUCCESS";
             statusMessage.style.color = "green";
-            const url = \`https://image2vrc.smisann.net/\${timestampKey}\`;
+            const url = \`https://image2vrc.smisann.net/\${uuid}\`;
             displayRecentUrl(url);
             await navigator.clipboard.writeText(url); // 自動でクリップボードにコピー
           } else {
