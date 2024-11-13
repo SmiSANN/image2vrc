@@ -315,8 +315,8 @@ export default {
 					return new Response('ファイルが大きすぎます。最大サイズは5MBです。', { status: 413 }); // 413 Payload Too Large
 				}
         if (key.length != keylength){
+          return new Response('不正なファイルです', { status: 400 }); //400 Bad Request
         }
-        return new Response('不正なファイルです', { status: 400 }); //400 Bad Request
 
 				// ファイルが条件を満たす場合のみ保存処理を実行
 				await env.MY_BUCKET.put(key, request.body);
