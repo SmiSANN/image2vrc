@@ -15,8 +15,7 @@ interface Env {
 	MY_BUCKET: R2Bucket;
 }
 
-const HTML = `
-<!DOCTYPE html>
+const HTML = `<!DOCTYPE html>
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
@@ -33,6 +32,7 @@ const HTML = `
       justify-content: center;
       align-items: center;
       min-height: 100vh;
+      position: relative;
     }
 
     /* 島のように浮かび上がらせるコンテナ */
@@ -145,6 +145,22 @@ const HTML = `
     #copyButton:hover {
       background-color: #218838;
     }
+
+    /* 使い方リンク */
+    .help-link {
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+      font-size: 14px;
+      font-weight: bold;
+      text-decoration: none;
+      color: #007bff;
+      transition: color 0.3s;
+    }
+
+    .help-link:hover {
+      color: #0056b3;
+    }
   </style>
 </head>
 <body>
@@ -172,138 +188,19 @@ const HTML = `
     <p id="statusMessage"></p>
     <!-- 画像のプレビュー表示用 -->
     <img id="preview" style="display: none;">
-
-    <script>
-      async function resizeImage(file, format = "image/png") {
-        const img = new Image();
-        img.src = URL.createObjectURL(file);
-
-        await new Promise((resolve) => {
-          img.onload = resolve;
-        });
-
-        const maxDimension = 2048;
-        let { width, height } = img;
-
-        if (width > maxDimension || height > maxDimension) {
-          const scaleFactor = maxDimension / Math.max(width, height);
-          width = Math.round(width * scaleFactor);
-          height = Math.round(height * scaleFactor);
-        }
-
-        const canvas = document.createElement("canvas");
-        canvas.width = width;
-        canvas.height = height;
-        
-        const ctx = canvas.getContext("2d");
-        ctx.drawImage(img, 0, 0, width, height);
-        
-        return new Promise((resolve) => {
-          canvas.toBlob((blob) => resolve(blob), format);
-        });
-      }
-
-      function showPreview(file) {
-        const preview = document.getElementById("preview");
-        preview.src = URL.createObjectURL(file);
-        preview.style.display = "block";
-      }
-
-      async function uploadImage(blob, format = "image/png") {
-        const statusMessage = document.getElementById("statusMessage");
-        statusMessage.innerText = "LOADING";
-        statusMessage.style.color = "black";
-
-        if (!blob) {
-          const fileInput = document.getElementById("fileInput");
-          const file = fileInput.files[0];
-          if (!file) {
-            statusMessage.innerText = "No file selected.";
-            return;
-          }
-          blob = await resizeImage(file, file.type);
-          format = file.type;
-          showPreview(file);
-        }
-
-        const uuid = self.crypto.randomUUID();
-        try {
-          const response = await fetch(\`/\${uuid}\`, {
-            method: "PUT",
-            headers: {
-              "Content-Type": format
-            },
-            body: blob
-          });
-
-          if (response.ok) {
-            statusMessage.innerText = "成功";
-            statusMessage.style.color = "green";
-            const url = \`https://image2vrc.smisann.net/\${uuid}\`;
-            displayRecentUrl(url);
-            await navigator.clipboard.writeText(url); // 自動でクリップボードにコピー
-          } else {
-            statusMessage.innerText = "失敗";
-            statusMessage.style.color = "red";
-          }
-        } catch (error) {
-          statusMessage.innerText = "失敗";
-          statusMessage.style.color = "red";
-          console.error("Error:", error);
-        }
-      }
-
-      function displayRecentUrl(url) {
-        const recentUrlElement = document.getElementById("recentUrl");
-        const copyButton = document.getElementById("copyButton");
-
-        recentUrlElement.innerText = url;
-        copyButton.style.display = "inline";
-      }
-
-      async function copyToClipboard() {
-        const recentUrl = document.getElementById("recentUrl").innerText;
-        try {
-          await navigator.clipboard.writeText(recentUrl);
-        } catch (error) {
-          console.error("Failed to copy URL:", error);
-        }
-      }
-
-      document.getElementById("fileInput").addEventListener("change", (event) => {
-        const file = event.target.files[0];
-        if (file) {
-          showPreview(file);
-        }
-      });
-
-      document.addEventListener("paste", async (event) => {
-        const items = event.clipboardData.items;
-        for (const item of items) {
-          if (item.type.startsWith("image/")) {
-            const blob = item.getAsFile();
-            showPreview(blob);
-            const resizedBlob = await resizeImage(blob, blob.type);
-            uploadImage(resizedBlob, blob.type);
-            break;
-          }
-        }
-      });
-    </script>
   </div>
+
+  <!-- 使い方リンク -->
+  <a href="https://smisann.fanbox.cc/posts/8882303" class="help-link" target="_blank">使い方はこちら</a>
 </body>
 </html>
 `;
-
-
-
-
 
 export default {
 	async fetch(request: Request, env: Env): Promise<Response> {
 		const url = new URL(request.url);
 		const key = url.pathname.slice(1);
-    const keylength = 36;
+		const keylength = 36;
 
 		switch (request.method) {
 			case 'PUT':
@@ -314,9 +211,9 @@ export default {
 				if (contentLength && parseInt(contentLength) > 5 * 1024 * 1024) {
 					return new Response('ファイルが大きすぎます。最大サイズは5MBです。', { status: 413 }); // 413 Payload Too Large
 				}
-        if (key.length != keylength){
-          return new Response('不正なファイルです', { status: 400 }); //400 Bad Request
-        }
+				if (key.length != keylength) {
+					return new Response('不正なファイルです', { status: 400 }); //400 Bad Request
+				}
 
 				// ファイルが条件を満たす場合のみ保存処理を実行
 				await env.MY_BUCKET.put(key, request.body);
