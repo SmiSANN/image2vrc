@@ -32,7 +32,6 @@ const HTML = `<!DOCTYPE html>
       justify-content: center;
       align-items: center;
       min-height: 100vh;
-      position: relative;
     }
 
     /* 島のように浮かび上がらせるコンテナ */
@@ -148,9 +147,8 @@ const HTML = `<!DOCTYPE html>
 
     /* 使い方リンク */
     .help-link {
-      position: absolute;
-      bottom: 20px;
-      right: 20px;
+      display: block;
+      margin-top: 20px;
       font-size: 14px;
       font-weight: bold;
       text-decoration: none;
@@ -188,10 +186,10 @@ const HTML = `<!DOCTYPE html>
     <p id="statusMessage"></p>
     <!-- 画像のプレビュー表示用 -->
     <img id="preview" style="display: none;">
-  </div>
 
-  <!-- 使い方リンク -->
-  <a href="https://smisann.fanbox.cc/posts/8882303" class="help-link" target="_blank">使い方はこちら</a>
+    <!-- 使い方リンク -->
+    <a href="https://smisann.fanbox.cc/posts/8882303" class="help-link" target="_blank">使い方はこちら</a>
+  </div>
 </body>
 </html>
 `;
