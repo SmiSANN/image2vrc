@@ -1,22 +1,3 @@
-// --- プライバシー警告バナー ---
-(function () {
-  const banner = document.createElement('p');
-  banner.textContent = 'アップロードした画像は公開状態になります。個人情報や機密情報を含む画像のアップロードはしないでください。';
-  Object.assign(banner.style, {
-    marginBottom: '20px',
-    padding: '10px 14px',
-    background: '#fffbe6',
-    border: '1px solid #f5d97a',
-    borderRadius: '8px',
-    fontSize: '12px',
-    color: '#6b5000',
-    lineHeight: '1.6',
-    textAlign: 'left',
-  });
-  const dropZone = document.getElementById('dropZone');
-  dropZone.parentNode.insertBefore(banner, dropZone);
-})();
-
 // --- 画像リサイズ（クライアント側フォールバック用） ---
 async function resizeImage(file, format = "image/png") {
   const img = new Image();

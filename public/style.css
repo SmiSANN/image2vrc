@@ -308,8 +308,8 @@ input[type="file"] { display: none; }
   line-height: 1.5;
 }
 
-/* プライバシー注意書き */
-.privacy-notice {
+/* アップロード注意書き */
+.upload-caution {
   margin-bottom: 20px;
   padding: 10px 14px;
   background: #fffbe6;
