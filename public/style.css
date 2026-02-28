@@ -311,7 +311,7 @@ input[type="file"] { display: none; }
 /* アップロード注意書き */
 .upload-caution {
   margin-bottom: 20px;
-  padding: 10px 14px;
+  padding: 10px 14px 10px 2em;
   background: #fffbe6;
   border: 1px solid #f5d97a;
   border-radius: 8px;
@@ -319,6 +319,7 @@ input[type="file"] { display: none; }
   color: #6b5000;
   line-height: 1.6;
   text-align: left;
+  text-indent: -1.5em;
 }
 
 /* ヘルプリンク */
