@@ -5,322 +5,598 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Image to VRC</title>
   <style>
-    /* 背景の設定 */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
     body {
-      font-family: Arial, sans-serif;
-      background-color: #f0f2f5;
-      margin: 0;
-      padding: 20px;
-      display: flex;
-      justify-content: center;
-      align-items: center;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+      background: linear-gradient(135deg, #f5eeff 0%, #fff0f8 100%);
       min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px 16px;
     }
 
-    /* 島のように浮かび上がらせるコンテナ */
     .container {
-      background-color: #fff;
-      padding: 30px 20px;
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 8px 32px rgba(160, 60, 160, 0.13);
+      padding: 32px 28px 24px;
+      width: 100%;
+      max-width: 520px;
+    }
+
+    h1 {
+      font-size: 22px;
+      font-weight: 700;
+      color: #2d2d2d;
+      text-align: center;
+      margin-bottom: 4px;
+    }
+
+    .subtitle {
+      font-size: 13px;
+      color: #5c5c5c;
+      text-align: center;
+      margin-bottom: 24px;
+    }
+
+    /* ドロップゾーン */
+    .drop-zone {
+      border: 2px dashed #ddb0dd;
       border-radius: 12px;
-      box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2);
-      width: 100%;
-      max-width: 600px;
+      padding: 28px 20px 20px;
       text-align: center;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+      background: #fdf6ff;
+      user-select: none;
     }
 
-    /* ヘッダーと説明 */
-    h1, p {
-      margin: 0 0 15px;
+    .drop-zone.dragover {
+      border-color: #cc44cc;
+      background: #f5e0ff;
     }
 
-    /* ピンク色のファイル選択ボタン */
-    input[type="file"] {
-      display: none;
+    .drop-zone-icon {
+      font-size: 40px;
+      margin-bottom: 10px;
+      line-height: 1;
     }
 
-    .label-button {
+    .drop-zone-text {
+      font-size: 15px;
+      color: #333;
+      margin-bottom: 14px;
+    }
+
+    input[type="file"] { display: none; }
+
+    .btn-primary {
       display: inline-block;
-      padding: 10px 20px;
-      font-size: 16px;
-      border-radius: 5px;
-      cursor: pointer;
-      background-color: #ff7bff;
+      padding: 9px 22px;
+      background: #ff7bff;
       color: #fff;
-      margin-bottom: 15px;
-      transition: background-color 0.3s;
-    }
-
-    .label-button:hover {
-      background-color: #b356b3;
-    }
-
-    /* アップロードボタン */
-    button {
-      padding: 10px 20px;
-      font-size: 16px;
       border: none;
-      border-radius: 5px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
       cursor: pointer;
-      background-color: #ff7bff;
-      color: #fff;
+      transition: background 0.2s, transform 0.1s;
+      text-decoration: none;
+    }
+
+    .btn-primary:hover { background: #cc44cc; }
+    .btn-primary:active { transform: scale(0.97); }
+
+    .drop-zone-hint {
+      font-size: 12px;
+      color: #707070;
       margin-top: 10px;
-      transition: background-color 0.3s;
     }
 
-    button:hover {
-      background-color: #b356b3;
+    /* divider */
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 20px 0;
+      color: #777;
+      font-size: 13px;
     }
 
-    /* アップロード状態の表示エリア */
+    .divider::before, .divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: #eee;
+    }
+
+    /* URL 入力行 */
+    .url-row {
+      display: flex;
+      gap: 8px;
+    }
+
+    .url-row input[type="text"] {
+      flex: 1;
+      padding: 9px 12px;
+      border: 1.5px solid #e0e0e0;
+      border-radius: 8px;
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.2s;
+      color: #333;
+    }
+
+    .url-row input[type="text"]:focus {
+      border-color: #cc66cc;
+    }
+
+    .btn-secondary {
+      padding: 9px 18px;
+      background: #ff7bff;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background 0.2s, transform 0.1s;
+    }
+
+    .btn-secondary:hover { background: #cc44cc; }
+    .btn-secondary:active { transform: scale(0.97); }
+
+    /* ステータス */
     #statusMessage {
-      font-weight: bold;
-      margin-top: 15px;
-      font-size: 18px;
-    }
-
-    #statusMessage.success {
-      color: green;
-    }
-
-    #statusMessage.fail {
-      color: red;
-    }
-
-    /* 画像プレビュー */
-    #preview {
-      max-width: 100%;
-      margin-top: 15px;
-      border-radius: 5px;
-      display: block;
-      margin-left: auto;
-      margin-right: auto;
-    }
-
-    /* 最近生成したURLのコンテナ */
-    #recentUrlContainer {
-      margin-top: 20px;
       text-align: center;
-      width: 100%;
+      font-size: 14px;
+      font-weight: 600;
+      margin-top: 14px;
+      min-height: 18px;
+      color: transparent;
+      transition: color 0.2s;
     }
 
-    #recentUrlContainer p {
-      font-weight: bold;
+    #statusMessage.loading { color: #666; }
+    #statusMessage.success { color: #22aa55; }
+    #statusMessage.error   { color: #dd3333; }
+
+    /* プレビュー */
+    #preview {
+      display: none;
+      max-width: 100%;
+      max-height: 180px;
+      border-radius: 8px;
+      margin: 12px auto 0;
+      object-fit: contain;
+    }
+
+    /* 生成URL エリア */
+    #resultArea {
+      display: none;
+      margin-top: 18px;
+      background: #f6fff8;
+      border: 1.5px solid #7dd8a0;
+      border-radius: 12px;
+      padding: 14px 16px;
+    }
+
+    .result-label {
+      font-size: 12px;
+      color: #525252;
+      margin-bottom: 6px;
     }
 
     #recentUrl {
-      font-size: 16px;
-      color: #007bff;
+      font-family: "Menlo", "Consolas", monospace;
+      font-size: 12px;
+      color: #1a55cc;
       word-break: break-all;
+      margin-bottom: 10px;
+      line-height: 1.5;
     }
 
     #copyButton {
-      padding: 8px 16px;
-      font-size: 14px;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      background-color: #28a745;
+      width: 100%;
+      padding: 10px;
+      background: #28aa55;
       color: #fff;
-      margin-top: 10px;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
     }
 
-    #copyButton:hover {
-      background-color: #218838;
+    #copyButton:hover { background: #1f8844; }
+    #copyButton:active { transform: scale(0.98); }
+    #copyButton.copied { background: #888; }
+
+    /* プロキシ折りたたみ */
+    .proxy-section {
+      margin-top: 22px;
+      border-top: 1px solid #f0e8f0;
+      padding-top: 16px;
     }
 
-    /* 使い方リンク */
+    .proxy-toggle {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      padding: 9px 14px;
+      background: #fcf0ff;
+      border: 1px solid #e4cce4;
+      border-radius: 8px;
+      font-size: 13px;
+      color: #994499;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .proxy-toggle:hover { background: #f5e0ff; }
+
+    .proxy-arrow {
+      font-size: 11px;
+      transition: transform 0.25s ease;
+      display: inline-block;
+    }
+
+    .proxy-arrow.open { transform: rotate(90deg); }
+
+    .proxy-body {
+      overflow: hidden;
+      max-height: 0;
+      opacity: 0;
+      transition: max-height 0.3s ease, opacity 0.25s ease;
+    }
+
+    .proxy-body.open {
+      max-height: 300px;
+      opacity: 1;
+    }
+
+    .proxy-inner {
+      padding: 14px 2px 4px;
+    }
+
+    .proxy-desc {
+      font-size: 13px;
+      color: #3d3d3d;
+      margin-bottom: 10px;
+      line-height: 1.5;
+    }
+
+    .proxy-url-box {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: #faf0ff;
+      border: 1px solid #ddc8dd;
+      border-radius: 8px;
+      padding: 8px 12px;
+    }
+
+    .proxy-url-text {
+      flex: 1;
+      font-family: "Menlo", "Consolas", monospace;
+      font-size: 12px;
+      color: #662299;
+      word-break: break-all;
+      line-height: 1.4;
+    }
+
+    #proxyBtn {
+      flex-shrink: 0;
+      padding: 5px 12px;
+      background: #aa44aa;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    #proxyBtn:hover { background: #882288; }
+    #proxyBtn.copied { background: #888; }
+
+    .proxy-hint {
+      font-size: 11px;
+      color: #707070;
+      margin-top: 8px;
+      line-height: 1.5;
+    }
+
+    /* プライバシー注意書き */
+    .privacy-notice {
+      margin-top: 20px;
+      padding: 10px 14px;
+      background: #fffbe6;
+      border: 1px solid #f5d97a;
+      border-radius: 8px;
+      font-size: 12px;
+      color: #6b5000;
+      line-height: 1.6;
+      text-align: left;
+    }
+
+    /* ヘルプリンク */
     .help-link {
       display: block;
+      text-align: center;
       margin-top: 20px;
-      font-size: 14px;
-      font-weight: bold;
+      font-size: 12px;
+      color: #777;
       text-decoration: none;
-      color: #007bff;
-      transition: color 0.3s;
+      transition: color 0.2s;
     }
 
-    .help-link:hover {
-      color: #0056b3;
-    }
+    .help-link:hover { color: #444; }
   </style>
 </head>
 <body>
   <div class="container">
     <h1>Image to VRC</h1>
-    <p>VRCのUnityWebRequestTexture向けに画像をアップロードできる</p>
+    <p class="subtitle">VRChatで使える画像URLを生成</p>
 
-    <!-- ピンク色のファイル選択ボタン -->
-    <label class="label-button" for="fileInput">ファイルを選択</label>
-    <input type="file" id="fileInput" accept="image/png, image/jpeg">
-
-    <!-- アップロードボタン -->
-    <button id="uploadButton" onclick="uploadImage()">画像をアップロード</button>
-
-    <p>又はクリップボードから貼り付け</p>
-
-    <hr>
-    <p>または画像 URL から取得</p>
-    <input type="text" id="urlInput" placeholder="https://example.com/image.png" style="width: 100%; box-sizing: border-box; padding: 8px; font-size: 14px; border: 1px solid #ccc; border-radius: 5px; margin-bottom: 8px;">
-    <button onclick="uploadFromUrl()">取得</button>
-
-    <!-- 最近生成したURLとコピー機能 -->
-    <div id="recentUrlContainer">
-      <p>最近生成したURL:</p>
-      <div id="recentUrl"></div>
-      <button id="copyButton" onclick="copyToClipboard()" style="display: none;">クリップボードにコピー</button>
+    <!-- ドロップゾーン -->
+    <div class="drop-zone" id="dropZone">
+      <div class="drop-zone-icon">🖼️</div>
+      <div class="drop-zone-text">ここに画像をドロップ</div>
+      <label class="btn-primary" for="fileInput">ファイルを選択</label>
+      <input type="file" id="fileInput" accept="image/png,image/jpeg,image/webp,image/gif">
+      <div class="drop-zone-hint">Ctrl+V でクリップボードから貼り付けも可</div>
     </div>
 
-    <!-- アップロード状態の表示エリア -->
-    <p id="statusMessage"></p>
-    <!-- 画像のプレビュー表示用 -->
-    <img id="preview" style="display: none;">
+    <div class="divider">または画像URLから取得</div>
 
-    <!-- 使い方リンク -->
-    <a href="https://smisann.fanbox.cc/posts/8882303" class="help-link" target="_blank">使い方はこちら</a>
+    <!-- URL 取得 -->
+    <div class="url-row">
+      <input type="text" id="urlInput" placeholder="https://example.com/image.png">
+      <button class="btn-secondary" onclick="uploadFromUrl()">取得</button>
+    </div>
+
+    <!-- ステータス & プレビュー -->
+    <p id="statusMessage"></p>
+    <img id="preview">
+
+    <!-- 生成URLエリア -->
+    <div id="resultArea">
+      <div class="result-label">生成されたURL（VRChatのImageLoaderなどで使えます）</div>
+      <div id="recentUrl"></div>
+      <button id="copyButton" onclick="copyToClipboard()">URLをコピー</button>
+    </div>
+
+    <!-- プロキシ折りたたみ -->
+    <div class="proxy-section">
+      <button class="proxy-toggle" onclick="toggleProxy()" type="button">
+        <span>プロキシURLを使う</span>
+        <span class="proxy-arrow" id="proxyArrow">▶</span>
+      </button>
+      <div class="proxy-body" id="proxyBody">
+        <div class="proxy-inner">
+          <p class="proxy-desc">外部URLをVRC対応のURLとして使いたい場合はこちら。<br>以下のURLの後ろに画像URLをそのまま繋げてください。</p>
+          <div class="proxy-url-box">
+            <span class="proxy-url-text">https://image2vrc.smisann.net/proxy?url=</span>
+            <button id="proxyBtn" onclick="copyProxyPrefix()" type="button">コピー</button>
+          </div>
+          <p class="proxy-hint">使用例: https://image2vrc.smisann.net/proxy?url=https://example.com/image.png</p>
+        </div>
+      </div>
+    </div>
+
+    <p class="privacy-notice">アップロードした画像は公開状態になります。個人情報や機密情報を含む画像のアップロードはしないでください。</p>
+
+    <a href="https://smisann.fanbox.cc/posts/8882303" class="help-link" target="_blank">使い方はこちら →</a>
   </div>
+
   <script>
+    // --- 画像リサイズ（クライアント側フォールバック用） ---
     async function resizeImage(file, format = "image/png") {
       const img = new Image();
       img.src = URL.createObjectURL(file);
-      await new Promise((resolve, reject) => {
-        img.onload = resolve;
-        img.onerror = reject;
-      });
+      await new Promise((resolve, reject) => { img.onload = resolve; img.onerror = reject; });
       const maxDimension = 2048;
       let { width, height } = img;
       if (width > maxDimension || height > maxDimension) {
-        const scaleFactor = maxDimension / Math.max(width, height);
-        width = Math.round(width * scaleFactor);
-        height = Math.round(height * scaleFactor);
+        const scale = maxDimension / Math.max(width, height);
+        width = Math.round(width * scale);
+        height = Math.round(height * scale);
       }
       const canvas = document.createElement("canvas");
       canvas.width = width;
       canvas.height = height;
-
-      const ctx = canvas.getContext("2d");
-      ctx.drawImage(img, 0, 0, width, height);
-
-      return new Promise((resolve) => {
-        canvas.toBlob((blob) => resolve(blob), format);
-      });
+      canvas.getContext("2d").drawImage(img, 0, 0, width, height);
+      return new Promise((resolve) => canvas.toBlob((blob) => resolve(blob), format));
     }
-    function showPreview(file) {
+
+    // --- プレビュー表示 ---
+    function showPreview(blobOrFile) {
       const preview = document.getElementById("preview");
-      preview.src = URL.createObjectURL(file);
+      preview.src = URL.createObjectURL(blobOrFile);
       preview.style.display = "block";
     }
-    async function uploadImage(blob, format = "image/png") {
-      const statusMessage = document.getElementById("statusMessage");
-      statusMessage.innerText = "LOADING";
-      statusMessage.style.color = "black";
-      if (!blob) {
-        const fileInput = document.getElementById("fileInput");
-        const file = fileInput.files[0];
-        if (!file) {
-          statusMessage.innerText = "No file selected.";
-          return;
-        }
-        blob = await resizeImage(file, file.type);
-        format = file.type;
-        showPreview(file);
-      }
+
+    // --- ステータス表示 ---
+    function setStatus(text, type) {
+      const el = document.getElementById("statusMessage");
+      el.textContent = text;
+      el.className = type; // loading / success / error
+    }
+
+    // --- URL表示＆コピーボタン ---
+    function showResult(url) {
+      document.getElementById("recentUrl").textContent = url;
+      const area = document.getElementById("resultArea");
+      area.style.display = "block";
+      const btn = document.getElementById("copyButton");
+      btn.textContent = "URLをコピー";
+      btn.classList.remove("copied");
+    }
+
+    // --- 画像アップロード（ファイル / Blob） ---
+    async function uploadImage(blob, format) {
+      setStatus("アップロード中…", "loading");
       const uuid = self.crypto.randomUUID();
       try {
-        const response = await fetch(`/${uuid}`, {
+        const res = await fetch(`/${uuid}`, {
           method: "PUT",
-          headers: {
-            "Content-Type": format
-          },
-          body: blob
+          headers: { "Content-Type": format },
+          body: blob,
         });
-        if (response.ok) {
-          statusMessage.innerText = "成功";
-          statusMessage.style.color = "green";
+        if (res.ok) {
           const url = `https://image2vrc.smisann.net/${uuid}`;
-          displayRecentUrl(url);
-          try {
-            await navigator.clipboard.writeText(url);
-          } catch {
-            // ユーザージェスチャー失効後の自動コピーは失敗することがある（無視）
-          }
+          showResult(url);
+          let copied = false;
+          try { await navigator.clipboard.writeText(url); copied = true; } catch {}
+          setStatus(copied ? "アップロード完了 · URLをコピーしました" : "アップロード完了", "success");
         } else {
-          statusMessage.innerText = "失敗";
-          statusMessage.style.color = "red";
+          const msg = await res.text();
+          setStatus(msg || "アップロード失敗", "error");
         }
-      } catch (error) {
-        statusMessage.innerText = "失敗";
-        statusMessage.style.color = "red";
-        console.error("Error:", error);
+      } catch {
+        setStatus("アップロード失敗", "error");
       }
     }
-    function displayRecentUrl(url) {
-      const recentUrlElement = document.getElementById("recentUrl");
-      const copyButton = document.getElementById("copyButton");
-      recentUrlElement.innerText = url;
-      copyButton.style.display = "inline";
+
+    // --- ファイル選択→アップロード ---
+    async function handleFile(file) {
+      if (!file) return;
+      showPreview(file);
+      const resized = await resizeImage(file, file.type);
+      await uploadImage(resized, file.type);
     }
-    async function copyToClipboard() {
-      const recentUrl = document.getElementById("recentUrl").innerText;
-      try {
-        await navigator.clipboard.writeText(recentUrl);
-      } catch (error) {
-        console.error("Failed to copy URL:", error);
-      }
-    }
-    document.getElementById("fileInput").addEventListener("change", (event) => {
-      const file = event.target.files[0];
-      if (file) {
-        showPreview(file);
+
+    document.getElementById("fileInput").addEventListener("change", (e) => {
+      handleFile(e.target.files[0]);
+    });
+
+    // --- ドラッグ＆ドロップ ---
+    const dropZone = document.getElementById("dropZone");
+
+    dropZone.addEventListener("click", (e) => {
+      if (e.target.tagName !== "LABEL" && e.target.tagName !== "INPUT") {
+        document.getElementById("fileInput").click();
       }
     });
-    document.addEventListener("paste", async (event) => {
-      const items = event.clipboardData.items;
-      for (const item of items) {
-        if (item.type.startsWith("image/")) {
-          const blob = item.getAsFile();
-          showPreview(blob);
-          const resizedBlob = await resizeImage(blob, blob.type);
-          await uploadImage(resizedBlob, blob.type);
-          break;
-        }
+
+    dropZone.addEventListener("dragover", (e) => {
+      e.preventDefault();
+      dropZone.classList.add("dragover");
+    });
+
+    dropZone.addEventListener("dragleave", () => {
+      dropZone.classList.remove("dragover");
+    });
+
+    dropZone.addEventListener("drop", async (e) => {
+      e.preventDefault();
+      dropZone.classList.remove("dragover");
+      const file = e.dataTransfer.files[0];
+      if (file && file.type.startsWith("image/")) {
+        await handleFile(file);
       }
     });
-    async function uploadFromUrl() {
-      const statusMessage = document.getElementById("statusMessage");
-      const url = document.getElementById("urlInput").value;
-      if (!url) {
-        statusMessage.innerText = "URL を入力してください";
-        statusMessage.style.color = "red";
+
+    // --- クリップボード貼り付け ---
+    document.addEventListener("paste", async (e) => {
+      const items = Array.from(e.clipboardData.items);
+
+      // 画像データ（ファイル）が含まれている場合
+      const imageItem = items.find((item) => item.type.startsWith("image/"));
+      if (imageItem) {
+        const blob = imageItem.getAsFile();
+        showPreview(blob);
+        const resized = await resizeImage(blob, blob.type);
+        await uploadImage(resized, blob.type);
         return;
       }
-      statusMessage.innerText = "LOADING";
-      statusMessage.style.color = "black";
-      try {
-        const response = await fetch("/fetch-url", {
-          method: "POST",
-          body: url,
-        });
-        if (response.ok) {
-          const uuid = await response.text();
-          const hostedUrl = `https://image2vrc.smisann.net/${uuid}`;
-          displayRecentUrl(hostedUrl);
-          statusMessage.innerText = "成功";
-          statusMessage.style.color = "green";
-          try {
-            await navigator.clipboard.writeText(hostedUrl);
-          } catch {
-            // ユーザージェスチャー失効後の自動コピーは失敗することがある（無視）
+
+      // テキストが画像URLの場合は自動で取得
+      const textItem = items.find((item) => item.type === "text/plain");
+      if (textItem) {
+        textItem.getAsString(async (text) => {
+          const trimmed = text.trim();
+          if (/^https?:\/\/.+\.(png|jpe?g|webp|gif)(\?.*)?$/i.test(trimmed)) {
+            document.getElementById("urlInput").value = trimmed;
+            await uploadFromUrl(trimmed);
           }
-        } else {
-          const errText = await response.text();
-          statusMessage.innerText = errText;
-          statusMessage.style.color = "red";
-        }
-      } catch (error) {
-        statusMessage.innerText = "失敗";
-        statusMessage.style.color = "red";
-        console.error("Error:", error);
+        });
       }
+    });
+
+    // --- URLから取得 ---
+    async function uploadFromUrl(urlOverride) {
+      const url = urlOverride ?? document.getElementById("urlInput").value.trim();
+      if (!url) { setStatus("URLを入力してください", "error"); return; }
+      setStatus("取得中…", "loading");
+      try {
+        const res = await fetch("/fetch-url", { method: "POST", body: url });
+        if (res.ok) {
+          const uuid = await res.text();
+          const hostedUrl = `https://image2vrc.smisann.net/${uuid}`;
+          showResult(hostedUrl);
+          let copied = false;
+          try { await navigator.clipboard.writeText(hostedUrl); copied = true; } catch {}
+          setStatus(copied ? "取得完了 · URLをコピーしました" : "取得完了", "success");
+        } else {
+          const msg = await res.text();
+          setStatus(msg || "取得失敗", "error");
+        }
+      } catch {
+        setStatus("取得失敗", "error");
+      }
+    }
+
+    // --- Enterキーで取得 ---
+    document.getElementById("urlInput").addEventListener("keydown", (e) => {
+      if (e.key === "Enter") uploadFromUrl();
+    });
+
+    // --- URLコピー ---
+    async function copyToClipboard() {
+      const url = document.getElementById("recentUrl").textContent;
+      const btn = document.getElementById("copyButton");
+      try {
+        await navigator.clipboard.writeText(url);
+        btn.textContent = "コピーしました！";
+        btn.classList.add("copied");
+        setTimeout(() => {
+          btn.textContent = "URLをコピー";
+          btn.classList.remove("copied");
+        }, 2000);
+      } catch {}
+    }
+
+    // --- プロキシ折りたたみ ---
+    function toggleProxy() {
+      const body = document.getElementById("proxyBody");
+      const arrow = document.getElementById("proxyArrow");
+      const isOpen = body.classList.toggle("open");
+      arrow.classList.toggle("open", isOpen);
+    }
+
+    // --- プロキシURLプレフィックスコピー ---
+    async function copyProxyPrefix() {
+      const prefix = "https://image2vrc.smisann.net/proxy?url=";
+      const btn = document.getElementById("proxyBtn");
+      try {
+        await navigator.clipboard.writeText(prefix);
+        btn.textContent = "コピーしました！";
+        btn.classList.add("copied");
+        setTimeout(() => {
+          btn.textContent = "コピー";
+          btn.classList.remove("copied");
+        }, 2000);
+      } catch {}
     }
   </script>
 </body>
