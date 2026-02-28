@@ -3,11 +3,15 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "deploy": "wrangler deploy",
-    "dev": "wrangler dev",
-    "start": "wrangler dev",
+    "deploy": "wrangler pages deploy",
+    "dev": "wrangler pages dev public",
+    "start": "wrangler pages dev public",
     "test": "vitest",
     "cf-typegen": "wrangler types"
+  },
+  "dependencies": {
+    "@cf-wasm/photon": "^0.3.4",
+    "hono": "^4.0.0"
   },
   "devDependencies": {
     "@cloudflare/vitest-pool-workers": "0.5.27",

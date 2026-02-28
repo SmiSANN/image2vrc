@@ -1,46 +1,46 @@
 {
 	"compilerOptions": {
-		/* Visit https://aka.ms/tsconfig.json to read more about this file */
+		/* このファイルの詳細については https://aka.ms/tsconfig.json を参照してください */
 
-		/* Set the JavaScript language version for emitted JavaScript and include compatible library declarations. */
+		/* 出力される JavaScript の言語バージョンを設定し、互換性のあるライブラリ宣言を含めます。 */
 		"target": "es2021",
-		/* Specify a set of bundled library declaration files that describe the target runtime environment. */
+		/* ターゲットランタイム環境を記述する組み込みライブラリ宣言ファイルのセットを指定します。 */
 		"lib": ["es2021"],
-		/* Specify what JSX code is generated. */
+		/* 生成される JSX コードの種類を指定します。 */
 		"jsx": "react-jsx",
 
-		/* Specify what module code is generated. */
+		/* 生成されるモジュールコードの種類を指定します。 */
 		"module": "es2022",
-		/* Specify how TypeScript looks up a file from a given module specifier. */
+		/* TypeScript がモジュール指定子からファイルを解決する方法を指定します。 */
 		"moduleResolution": "Bundler",
-		/* Specify type package names to be included without being referenced in a source file. */
+		/* ソースファイルで参照されていなくても含める型パッケージ名を指定します。 */
 		"types": [
 			"@cloudflare/workers-types/2023-07-01"
 		],
-		/* Enable importing .json files */
+		/* .json ファイルのインポートを有効にします */
 		"resolveJsonModule": true,
 
-		/* Allow JavaScript files to be a part of your program. Use the `checkJS` option to get errors from these files. */
+		/* JavaScript ファイルをプログラムの一部として含めることを許可します。`checkJS` オプションでエラーチェックを有効にできます。 */
 		"allowJs": true,
-		/* Enable error reporting in type-checked JavaScript files. */
+		/* 型チェックされた JavaScript ファイルでのエラー報告を有効にします。 */
 		"checkJs": false,
 
-		/* Disable emitting files from a compilation. */
+		/* コンパイル時にファイルを出力しません。 */
 		"noEmit": true,
 
-		/* Ensure that each file can be safely transpiled without relying on other imports. */
+		/* 各ファイルが他のインポートに依存せず単独でトランスパイルできることを保証します。 */
 		"isolatedModules": true,
-		/* Allow 'import x from y' when a module doesn't have a default export. */
+		/* デフォルトエクスポートがないモジュールでも 'import x from y' を許可します。 */
 		"allowSyntheticDefaultImports": true,
-		/* Ensure that casing is correct in imports. */
+		/* インポートのファイル名の大文字・小文字が正しいことを確認します。 */
 		"forceConsistentCasingInFileNames": true,
 
-		/* Enable all strict type-checking options. */
+		/* すべての厳格な型チェックオプションを有効にします。 */
 		"strict": true,
 
-		/* Skip type checking all .d.ts files. */
+		/* すべての .d.ts ファイルの型チェックをスキップします。 */
 		"skipLibCheck": true
 	},
 	"exclude": ["test"],
-	"include": ["worker-configuration.d.ts", "src/**/*.ts"]
+	"include": ["worker-configuration.d.ts", "functions/**/*.ts"]
 }

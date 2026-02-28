@@ -4,7 +4,12 @@ export default defineWorkersConfig({
 	test: {
 		poolOptions: {
 			workers: {
-				wrangler: { configPath: './wrangler.toml' },
+				main: './functions/[[route]].ts',
+				miniflare: {
+					compatibilityDate: '2024-10-11',
+					compatibilityFlags: ['nodejs_compat'],
+					r2Buckets: ['MY_BUCKET'],
+				},
 			},
 		},
 	},
