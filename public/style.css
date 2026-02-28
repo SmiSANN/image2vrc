@@ -310,14 +310,13 @@ input[type="file"] { display: none; }
 
 /* プライバシー注意書き */
 .privacy-notice {
-  display: block !important;
-  margin-top: 20px;
+  margin-bottom: 20px;
   padding: 10px 14px;
   background: #fffbe6;
   border: 1px solid #f5d97a;
   border-radius: 8px;
   font-size: 12px;
-  color: #6b5000 !important;
+  color: #6b5000;
   line-height: 1.6;
   text-align: left;
 }
