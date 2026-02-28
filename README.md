@@ -25,7 +25,7 @@ functions/[[route]].ts
 Cloudflare R2         ← 画像ストレージ（非公開）
 ```
 
-### プロキシ API の使い方
+### プロキシモードの使い方
 
 VRChat のテクスチャ URL として外部画像を直接指定できます。
 
