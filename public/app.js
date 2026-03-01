@@ -192,7 +192,7 @@ function toggleProxy() {
 
 // --- プロキシURLプレフィックスコピー ---
 async function copyProxyPrefix() {
-  const prefix = "https://image2vrc.smisann.net/proxy?url=";
+  const prefix = "https://imagetovrc.smisann.net/proxy?url=";
   const btn = document.getElementById("proxyBtn");
   try {
     await navigator.clipboard.writeText(prefix);
