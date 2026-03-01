@@ -99,6 +99,19 @@ dropZone.addEventListener("drop", async (e) => {
   }
 });
 
+// --- 画像URLの判定（拡張子 or format=パラメータ） ---
+function isImageUrl(url) {
+  try {
+    const { pathname, searchParams } = new URL(url);
+    if (/\.(png|jpe?g|webp|gif)$/i.test(pathname)) return true;
+    const fmt = searchParams.get("format");
+    if (fmt && /^(png|jpe?g|webp|gif)$/i.test(fmt)) return true;
+    return false;
+  } catch {
+    return false;
+  }
+}
+
 // --- クリップボード貼り付け ---
 document.addEventListener("paste", async (e) => {
   const items = Array.from(e.clipboardData.items);
@@ -118,7 +131,7 @@ document.addEventListener("paste", async (e) => {
   if (textItem) {
     textItem.getAsString(async (text) => {
       const trimmed = text.trim();
-      if (/^https?:\/\/.+\.(png|jpe?g|webp|gif)(\?.*)?$/i.test(trimmed)) {
+      if (/^https?:\/\//i.test(trimmed) && isImageUrl(trimmed)) {
         document.getElementById("urlInput").value = trimmed;
         await uploadFromUrl(trimmed);
       }
