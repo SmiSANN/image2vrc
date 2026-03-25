@@ -78,6 +78,24 @@ async function resizeIfNeeded(
 }
 
 export const app = new Hono<{ Bindings: Bindings }>()
+const ALLOWED_ORIGINS = [
+  'https://tauri.localhost',   // MnemoVR (Windows)
+  'tauri://localhost',         // MnemoVR (macOS/Linux)
+  'http://localhost:5173',     // 開発環境
+]
+
+app.use('*', async (c, next) => {
+  const origin = c.req.header('Origin') ?? ''
+  if (ALLOWED_ORIGINS.includes(origin)) {
+    c.header('Access-Control-Allow-Origin', origin)
+    c.header('Access-Control-Allow-Methods', 'GET, PUT, POST, OPTIONS')
+    c.header('Access-Control-Allow-Headers', 'Content-Type')
+  }
+  if (c.req.method === 'OPTIONS') {
+    return c.text('', 204)
+  }
+  await next()
+})
 
 app.post('/fetch-url', async (c) => {
 	const url = await c.req.text()
