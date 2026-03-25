@@ -7,7 +7,7 @@ type Bindings = {
 }
 
 const UUID_LENGTH = 36
-const MAX_UPLOAD_SIZE = 5 * 1024 * 1024
+const MAX_UPLOAD_SIZE = 20 * 1024 * 1024
 const MAX_INPUT_SIZE = 20 * 1024 * 1024
 const RESIZE_THRESHOLD = 2048
 
