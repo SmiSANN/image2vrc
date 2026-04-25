@@ -4,12 +4,56 @@ import { PhotonImage, resize, SamplingFilter } from '@cf-wasm/photon/workerd'
 
 type Bindings = {
 	MY_BUCKET: R2Bucket
+	ASSETS: Fetcher
 }
 
 const UUID_LENGTH = 36
 const MAX_UPLOAD_SIZE = 20 * 1024 * 1024
 const MAX_INPUT_SIZE = 20 * 1024 * 1024
 const RESIZE_THRESHOLD = 2048
+
+const ALLOWED_IMAGE_HOSTS = new Set([
+	// Discord
+	'cdn.discordapp.com',
+	'media.discordapp.net',
+	// Twitter / X
+	'pbs.twimg.com',
+	// Pixiv
+	'i.pximg.net',
+	// Pixiv Fanbox
+	'downloads.fanbox.cc',
+	// Reddit
+	'i.redd.it',
+	'preview.redd.it',
+	'external-preview.redd.it',
+	// Imgur
+	'i.imgur.com',
+	// GitHub
+	'raw.githubusercontent.com',
+	'user-images.githubusercontent.com',
+	'camo.githubusercontent.com',
+	// Steam
+	'steamuserimages-a.akamaihd.net',
+	'cdn.akamai.steamstatic.com',
+	'cdn.cloudflare.steamstatic.com',
+	// Gyazo
+	'i.gyazo.com',
+	// Skeb
+	'cdn.skeb.jp',
+	// Bluesky
+	'cdn.bsky.app',
+	// Niconico
+	'tn.nicovideo.jp',
+	// ArtStation
+	'cdna.artstation.com',
+	'cdnb.artstation.com',
+	// Resonite
+	's3.resonite.love',
+	// Fediverse
+	'media.niri.la',
+	'media.buicha.social',
+])
+
 
 function detectImageMimeType(buf: ArrayBuffer): string | null {
 	const b = new Uint8Array(buf)
@@ -97,40 +141,6 @@ app.use('*', async (c, next) => {
   await next()
 })
 
-app.post('/fetch-url', async (c) => {
-	const url = await c.req.text()
-	if (!url) return c.text('URL を入力してください', 400)
-
-	let parsed: URL
-	try {
-		parsed = new URL(url)
-	} catch {
-		return c.text('不正な URL です', 400)
-	}
-	if (parsed.protocol !== 'https:') return c.text('https: スキームのみ対応しています', 400)
-
-	let upstream: Response
-	try {
-		upstream = await fetch(url)
-	} catch {
-		return c.text('外部 URL の取得に失敗しました', 502)
-	}
-
-	const buffer = await upstream.arrayBuffer()
-	if (buffer.byteLength > MAX_INPUT_SIZE) return c.text('20MB 以下にしてください', 413)
-
-	const mimeType = detectImageMimeType(buffer)
-	if (!mimeType) return c.text('対応していないファイル形式です（PNG/JPEG/WebP/GIF のみ）', 415)
-
-	const { buffer: outBuffer, mimeType: outMime } = await resizeIfNeeded(buffer, mimeType)
-
-	const uuid = crypto.randomUUID()
-	await c.env.MY_BUCKET.put(uuid, outBuffer, {
-		httpMetadata: { contentType: outMime },
-	})
-	return c.text(uuid)
-})
-
 app.get('/proxy', async (c) => {
 	const url = c.req.query('url')
 	if (!url) return c.text('url パラメータが必要です', 400)
@@ -142,6 +152,7 @@ app.get('/proxy', async (c) => {
 		return c.text('不正な URL です', 400)
 	}
 	if (parsed.protocol !== 'https:') return c.text('https: スキームのみ対応しています', 400)
+	if (!ALLOWED_IMAGE_HOSTS.has(parsed.hostname)) return c.env.ASSETS.fetch(new URL('/blocked.png', c.req.url).href)
 
 	const key = await urlToKey(url)
 
