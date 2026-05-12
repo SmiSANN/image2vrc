@@ -144,22 +144,19 @@ async function uploadFromUrl(urlOverride) {
   const url = urlOverride ?? document.getElementById("urlInput").value.trim();
   if (!url) { setStatus("URLを入力してください", "error"); return; }
   setStatus("取得中…", "loading");
+  let blob;
   try {
-    const res = await fetch("/fetch-url", { method: "POST", body: url });
-    if (res.ok) {
-      const uuid = await res.text();
-      const hostedUrl = `https://image2vrc.smisann.net/${uuid}`;
-      showResult(hostedUrl);
-      let copied = false;
-      try { await navigator.clipboard.writeText(hostedUrl); copied = true; } catch {}
-      setStatus(copied ? "取得完了 · URLをコピーしました" : "取得完了", "success");
-    } else {
-      const msg = await res.text();
-      setStatus(msg || "取得失敗", "error");
-    }
+    const res = await fetch(url);
+    if (!res.ok) { setStatus("画像の取得に失敗しました", "error"); return; }
+    blob = await res.blob();
   } catch {
-    setStatus("取得失敗", "error");
+    setStatus("画像の取得に失敗しました（CORSなど）", "error");
+    return;
   }
+  if (!blob.type.startsWith("image/")) { setStatus("画像ではありません", "error"); return; }
+  showPreview(blob);
+  const resized = await resizeImage(blob, blob.type);
+  await uploadImage(resized, blob.type);
 }
 
 // --- Enterキーで取得 ---
